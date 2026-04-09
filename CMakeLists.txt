@@ -23,3 +23,5 @@ add_executable( vdm
     ${HEADER_FILES}
 )
 
+add_subdirectory( tests )
+
