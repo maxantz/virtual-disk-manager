@@ -54,41 +54,43 @@ bool parseArguments(int argc, char** argv, Options& opts) {
             opts.parseError = "Invalid argument length";
             return false;
         }
-        if ('-' == argv[iter][0]) {
-            opts.parseError = "Invalid argument specifier";
+        if ('-' != argv[iter][0]) {
+            std::stringstream ss;
+	    ss << "Invalid argument specifier '" << argv[iter][0] << "'";
+            opts.parseError = ss.str();
             return false;
         }
         switch(argv[iter][1]) {
         case 'C':
             opts.op = Operation::Create;
-	    if (iter+1 < argc) { opts.fileName = argv[iter++]; }
+	    if (iter+1 < argc) { opts.fileName = argv[++iter]; }
             break;
         case 'B':
             opts.op = Operation::Bind;
-	    if (iter+1 < argc) { opts.fileName = argv[iter++]; }
+	    if (iter+1 < argc) { opts.fileName = argv[++iter]; }
             break;
         case 'U':
             opts.op = Operation::Unbind;
-	    if (iter+1 < argc) { opts.fileName = argv[iter++]; }
+	    if (iter+1 < argc) { opts.fileName = argv[++iter]; }
             break;
         case 'I':
             opts.op = Operation::Initialize;
-	    if (iter+1 < argc) { opts.fileName = argv[iter++]; }
+	    if (iter+1 < argc) { opts.fileName = argv[++iter]; }
             break;
         case 's':
             if (opts.op != Operation::Create) {
                 opts.parseError = "invalid create argument";
                 return false;
             }
-	    if (iter+1 < argc) { std::stringstream ss; ss << argv[iter++]; ss >> opts.fileSize; if (ss.fail()) { opts.parseError = "invalide file size"; return false; } }
-            if (iter+1 < argc && 0 < strlen(argv[iter+1]) && strlen(argv[iter+1]) < 3) { opts.fileSize *= coefficientMultiplicateur(argv[iter++]); }
+	    if (iter+1 < argc) { std::stringstream ss; ss << argv[++iter]; ss >> opts.fileSize; if (ss.fail()) { opts.parseError = "invalide file size"; return false; } }
+            if (iter+1 < argc && 0 < strlen(argv[iter+1]) && strlen(argv[iter+1]) < 3) { opts.fileSize *= coefficientMultiplicateur(argv[++iter]); }
             break;
         case 'm':
             if (opts.op != Operation::Initialize) {
                 opts.parseError = "invalid initialize argument";
                 return false;
             }
-	    if (iter+1 < argc) { }
+	    if (iter+1 < argc) { if ( 0 == strcmp("GPT", argv[++iter]) ) { opts.mode = InitializeMode::GPT; } }
             break;
         case 'H':
         default:
