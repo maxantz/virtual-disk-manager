@@ -1,5 +1,6 @@
 #include <iostream>
 #include "arguments_parser.h"
+#include "vhdx.h"
 
 void usage(const char* programName) {
     std::cerr<<std::endl;
@@ -30,8 +31,25 @@ int main(int argc, char** argv) {
     struct Options opts;
 
     if (!parseArguments(argc, argv, opts)) {
+        std::cerr<<std::endl<<opts.parseError<<std::endl;
         usage(argv[0]);
         return -1;
+    }
+
+    switch(opts.op) {
+    case Operation::Create:
+        createVHDX(opts.fileName, opts.fileSize);
+        break;
+    case Operation::Bind:
+        break;
+    case Operation::Unbind:
+        break;
+    case Operation::Initialize:
+        break;
+    case Operation::Help:
+    default:
+        usage(argv[0]);
+        break;
     }
 
     return 0;
