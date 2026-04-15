@@ -2,6 +2,8 @@ cmake_minimum_required( VERSION 3.16 )
 
 project( vdm LANGUAGES CXX )
 
+find_package(Crc32c REQUIRED)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -23,5 +25,8 @@ add_executable( vdm
     ${HEADER_FILES}
 )
 
-add_subdirectory( tests )
+target_link_libraries( vdm
+	Crc32c::crc32c
+)
 
+add_subdirectory( tests )

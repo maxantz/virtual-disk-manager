@@ -1,5 +1,6 @@
 #include "arguments_parser.h"
 #include <sstream>
+#include <cstring>
 
 size_t coefficientMultiplicateur(char* coefficient) {
     const int coefficientLength = strlen(coefficient);

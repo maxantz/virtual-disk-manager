@@ -4,201 +4,203 @@
 #include <filesystem>
 
 /**
- *     |----------|----------|----------|----------|----------|----------|----------|----------|----------|
- *     |  Header  |   Log    |   BAT    |  Sector  |   Data   |          | Metadata |          |   Data   |
- *     |          |          |          |  Bitmap  |          |          |  Region  |          |          |
- *     |----------|----------|----------|----------|----------|----------|----------|----------|----------|
- */
-
-/**
  *  ** Header **
  *     |----------|----------|----------|----------|----------|----------|
- *     |   File   |  Header  |  Header  |  Region  |  Region  |Reserved |
+ *     |   File   |  Header  |  Header  |  Region  |  Region  | Reserved |
  *     |Identifier|    1     |    2     |  Table   |  Table   |          |
  *     |          |          |          |    1     |    2     |          |
  *     |----------|----------|----------|----------|----------|----------|
  *    0kB       64kB       128kB      192kB      256kB      320kB       1MB
  */
 
-struct VHDX_GUID {
-    uint32_t	Data1;
-    uint16_t	Data2;
-    uint16_t	Data3;
-    uint8_t	Data4[8];
+/**
+ *     |----------|----------|----------|----------|----------|----------|----------|----------|----------|
+ *     |  Header  |   Log    |   BAT    |  Sector  |   Data   |          | Metadata |          |   Data   |
+ *     |          |          |          |  Bitmap  |          |          |  Region  |          |          |
+ *     |----------|----------|----------|----------|----------|----------|----------|----------|----------|
+ */
+
+struct VHDX_GUID {                                                                      //   16 octets
+    uint32_t  Data1 { 0 };                                                              //    4 octets
+    uint16_t  Data2 { 0 };                                                              //    2 octets
+    uint16_t  Data3 { 0 };                                                              //    2 octets
+    uint8_t   Data4[8] { 0 };                                                           //    8 octets
 };
 
-struct VHDX_FILE_IDENTIFIER {
-    uint64_t	Signature { 0x656C696678646876 };	// 0x656C696678646876 -> "vhdxfile"
-    uint16_t	Creator[256] { 0x0056, 0x0069, 0x0072, 0x0074, 0x0075, 0x0061, 0x006C, 0x0020, 0x0044, 0x0069, 0x0073, 0x006B, 0x0020, 0x004D, 0x0061, 0x006E, 0x0061, 0x0067, 0x0065, 0x0072, 0x0000 };	// "Virtual Disk Manager\0"
+struct VHDX_FILE_IDENTIFIER {                                                           //  520 octets
+    uint64_t  Signature { 0x656C696678646876 }; // 0x656C696678646876 -> "vhdxfile"     //    8 octets
+    uint16_t  Creator[256] { 0x0056, 0x0069,    // "Virtual Disk Manager\0"             //  512 octets
+        0x0072, 0x0074, 0x0075, 0x0061, 0x006C, 0x0020, 0x0044, 0x0069, 0x0073, 0x006B,
+        0x0020, 0x004D, 0x0061, 0x006E, 0x0061, 0x0067, 0x0065, 0x0072, 0x0000 };
 };
 
 const size_t VHDX_FILE_IDENTIFIER_SIZE { sizeof(struct VHDX_FILE_IDENTIFIER) };
 
-struct VHDX_HEADER {
-    uint32_t	Signature { 0x64616568 };	// 0x64616568 -> "head"
-    uint32_t	Checksum;
-    uint64_t	SequenceNumber;
-    VHDX_GUID	FileWriteGuid;
-    VHDX_GUID	DataWriteGuid;
-    VHDX_GUID	LogGuid;
-    uint16_t	LogVersion;
-    uint16_t	Version;
-    uint32_t	LogLength;
-    uint64_t	LogOffset;
-    uint8_t	Reserved[4016];
+struct VHDX_HEADER {                                                                    // 4096 octets
+    uint32_t  Signature { 0x64616568 }; // 0x64616568 -> "head"                         //    4 octets
+    uint32_t  Checksum { 0 };           // 0x40D8ECD8              0xFA7020C2           //    4 octets
+    uint64_t  SequenceNumber { 0 };     // 0x0600000000000000      0x07000000000000000  //    8 octets
+    VHDX_GUID FileWriteGuid { };        // 0x0EFF4560B389E545BCAC2ADD55ADC2B3           //   16 octets
+    VHDX_GUID DataWriteGuid { };        // 0xAD9F747ED5E3E34296C6B0FD494C3ED0           //   16 octets
+    VHDX_GUID LogGuid { };              // 0x6CCA86B605FF73469BAE8A29A82598DB           //   16 octets
+    uint16_t  LogVersion { 0 };         // 0x0000                                       //    2 octets
+    uint16_t  Version { 0 };            // 0x0100                                       //    2 octets
+    uint32_t  LogLength { 0 };          // 0x00001000                                   //    4 octets
+    uint64_t  LogOffset { 0 };          // 0x0000100000000000                           //    8 octets
+    uint8_t   Reserved[4016] { 0 };                                                     // 4016 octets
 };
 
 const size_t VHDX_HEADER_SIZE { sizeof(struct VHDX_HEADER) };
 
-struct VHDX_REGION_TABLE_HEADER {
-    uint32_t	Signature { 0x69676572 };	// 0x69676572 -> "regi"
-    uint32_t	Checksum;
-    uint32_t	EntryCount;
-    uint32_t	Reserved;
+struct VHDX_REGION_TABLE_HEADER {                                                       //   32 octets
+    uint32_t  Signature { 0x69676572 }; // 0x69676572 -> "regi"                         //    4 octets
+    uint32_t  Checksum { 0 };                                                           //    4 octets
+    uint32_t  EntryCount { 0 };                                                         //    4 octets
+    uint32_t  Reserved { 0 };                                                           //    4 octets
 };
 
 const size_t VHDX_REGION_TABLE_HEADER_SIZE { sizeof(struct VHDX_REGION_TABLE_HEADER) };
 
-struct VHDX_REGION_TABLE_ENTRY {
-    VHDX_GUID	Guid;
-    uint64_t	FileOffset;
-    uint32_t	Length;
-    uint32_t	Required:1;
-    uint32_t	Reserved:31;
+struct VHDX_REGION_TABLE_ENTRY {                                                        //   32 octets
+    VHDX_GUID  Guid;                                                                    //   16 octets
+    uint64_t   FileOffset { 0 };                                                        //    8 octets
+    uint32_t   Length { 0 };                                                            //    4 octets
+    uint32_t   Required:1;                                                              //    4 octets    1 bits
+    uint32_t   Reserved:31;                                                             //    0 octet    31 bits
 };
 
 const size_t VHDX_REGION_TABLE_ENTRY_SIZE { sizeof(struct VHDX_REGION_TABLE_ENTRY) };
 
-struct VHDX_LOG_ENTRY_HEADER {
-    uint32_t	Signature { 0x65676F6C };	// 0x65676F6C -> "loge"
-    uint32_t	Checksum;
-    uint32_t	EntryLength;
-    uint32_t	Tail;
-    uint64_t	SequenceNumber;
-    uint32_t	DescriptorCount;
-    uint32_t	Reserved;
-    VHDX_GUID	LogGuid;
-    uint64_t	FlushedFileOffset;
-    uint64_t	LastFileOffset;
+struct VHDX_LOG_ENTRY_HEADER {                                                          //   64 octets
+    uint32_t    Signature { 0x65676F6C };   // 0x65676F6C -> "loge"                     //    4 octets
+    uint32_t    Checksum { 0 };                                                         //    4 octets
+    uint32_t    EntryLength { 0 };                                                      //    4 octets
+    uint32_t    Tail { 0 };                                                             //    4 octets
+    uint64_t    SequenceNumber { 0 };                                                   //    8 octets
+    uint32_t    DescriptorCount { 0 };                                                  //    4 octets
+    uint32_t    Reserved { 0 };                                                         //    4 octets
+    VHDX_GUID   LogGuid;                                                                //   16 octets
+    uint64_t    FlushedFileOffset { 0 };                                                //    8 octets
+    uint64_t    LastFileOffset { 0 };                                                   //    8 octets
 };
 
 const size_t VHDX_LOG_ENTRY_HEADER_SIZE { sizeof(struct VHDX_LOG_ENTRY_HEADER) };
 
-struct VHDX_LOG_ZERO_DESCRIPTOR {
-    uint32_t	ZeroSignature { 0x6F72657A };	// 0x6F72657A -> "zero"
-    uint32_t 	Reserved;
-    uint64_t	ZeroLength;
-    uint64_t	FileOffset;
-    uint64_t	SequenceNumber;
+struct VHDX_LOG_ZERO_DESCRIPTOR {                                                       //   32 octets
+    uint32_t    ZeroSignature { 0x6F72657A };   // 0x6F72657A -> "zero"                 //    4 octets
+    uint32_t    Reserved { 0 };                                                         //    4 octets
+    uint64_t    ZeroLength { 0 };                                                       //    8 octets
+    uint64_t    FileOffset { 0 };                                                       //    8 octets
+    uint64_t    SequenceNumber { 0 };                                                   //    8 octets
 };
 
 const size_t VHDX_LOG_ZERO_DESCRIPTOR_SIZE { sizeof(struct VHDX_LOG_ZERO_DESCRIPTOR) };
 
-struct VHDX_LOG_DATA_DESCRIPTOR {
-    uint32_t	DataSignature { 0x63736564 };	// 0x63736564 -> "desc"
-    uint32_t	TrailingBytes;
-    uint64_t	LeadingBytes;
-    uint64_t	FileOffset;
-    uint64_t	SequenceNumber;
+struct VHDX_LOG_DATA_DESCRIPTOR {                                                       //   32 octets
+    uint32_t    DataSignature { 0x63736564 };   // 0x63736564 -> "desc"                 //    4 octets
+    uint32_t    TrailingBytes { 0 };                                                    //    4 octets
+    uint64_t    LeadingBytes { 0 };                                                     //    8 octets
+    uint64_t    FileOffset { 0 };                                                       //    8 octets
+    uint64_t    SequenceNumber { 0 };                                                   //    8 octets
 };
 
 const size_t VHDX_LOG_DATA_DESCRIPTOR_SIZE { sizeof(struct VHDX_LOG_DATA_DESCRIPTOR) };
 
-struct VHDX_LOG_DATA_SECTOR {
-    uint32_t	DataSignature { 0x61746164 };	// 0x61746164 -> "data"
-    uint32_t	SequenceHigh;
-    uint8_t	Data[4084];
-    uint32_t	SequenceLow;
+struct VHDX_LOG_DATA_SECTOR {                                                           // 4096 octets
+    uint32_t    DataSignature { 0x61746164 };   // 0x61746164 -> "data"                 //    4 octets
+    uint32_t    SequenceHigh { 0 };                                                     //    4 octets
+    uint8_t     Data[4084] { 0 };                                                       // 4084 octets
+    uint32_t    SequenceLow { 0 };                                                      //    4 octets
 };
 
 const size_t VHDX_LOG_DATA_SECTOR_SIZE { sizeof(struct VHDX_LOG_DATA_SECTOR) };
 
-struct VHDX_BAT_ENTRY {
-    uint64_t	State:3;
-    uint64_t	Reserved:17;
-    uint64_t	FileOffsetMB:44;
+struct VHDX_BAT_ENTRY {                                                                 //    8 octets
+    uint64_t    State:3;                                                                //    8 octets
+    uint64_t    Reserved:17;                                                            //    0 octet
+    uint64_t    FileOffsetMB:44;                                                        //    0 octet
 };
 
 const size_t VHDX_BAT_ENTRY_SIZE { sizeof(struct VHDX_BAT_ENTRY) };
 
-#define	PAYLOAD_BLOCK_NOT_PRESENT 0
-#define	PAYLOAD_BLOCK_UNDEFINED 1
-#define	PAYLOAD_BLOCK_ZERO 2
+#define PAYLOAD_BLOCK_NOT_PRESENT 0
+#define PAYLOAD_BLOCK_UNDEFINED 1
+#define PAYLOAD_BLOCK_ZERO 2
 #define PAYLOAD_BLOCK_UNMAPPED 3
-#define	PAYLOAD_BLOCK_FULLY_PRESENT 6
-#define	PAYLOAD_BLOCK_PARTIALLY_PRESENT 7
+#define PAYLOAD_BLOCK_FULLY_PRESENT 6
+#define PAYLOAD_BLOCK_PARTIALLY_PRESENT 7
 
-#define	SB_BLOCK_NOT_PRESENT 0
-#define	SB_BLOCK_PRESENT 6
+#define SB_BLOCK_NOT_PRESENT 0
+#define SB_BLOCK_PRESENT 6
 
-struct VHDX_METADATA_TABLE_HEADER {
-    uint64_t	Signature { 0x617461646174656D };	// 0x617461646174656D -> "metadata"
-    uint16_t	Reserved;
-    uint16_t	EntryCount;
-    uint32_t	Reserved2[5];
+struct VHDX_METADATA_TABLE_HEADER {                                                     //   32 octets
+    uint64_t    Signature { 0x617461646174656D };   // 0x617461646174656D -> "metadata" //    8 octets
+    uint16_t    Reserved { 0 };                                                         //    2 octets
+    uint16_t    EntryCount { 0 };                                                       //    2 octets
+    uint32_t    Reserved2[5] { 0 };                                                     //   20 octets
 };
 
 const size_t VHDX_METADATA_TABLE_HEADER_SIZE { sizeof(struct VHDX_METADATA_TABLE_HEADER) };
 
-struct VHDX_METADATA_TABLE_ENTRY {
-    VHDX_GUID	ItemId;
-    uint32_t	Offset;
-    uint32_t	Length;
-    uint32_t	IsUser:1;
-    uint32_t	IsVirtualDisk:1;
-    uint32_t	IsRequired:1;
-    uint32_t	Reserved:29;
-    uint32_t	Reserved2;
+struct VHDX_METADATA_TABLE_ENTRY {                                                      //   32 octets
+    VHDX_GUID   ItemId;                                                                 //   16 octets
+    uint32_t    Offset { 0 };                                                           //    4 octets
+    uint32_t    Length { 0 };                                                           //    4 octets
+    uint32_t    IsUser:1;                                                               //    4 octets    1 bit
+    uint32_t    IsVirtualDisk:1;                                                        //    0 octet     1 bit
+    uint32_t    IsRequired:1;                                                           //    0 octet     1 bit
+    uint32_t    Reserved:29;                                                            //    0 octet    29 bits
+    uint32_t    Reserved2 { 0 };                                                        //    4 octets
 };
 
 const size_t VHDX_METADATA_TABLE_ENTRY_SIZE { sizeof(struct VHDX_METADATA_TABLE_ENTRY) };
 
-struct VHDX_FILE_PARAMETERS {
-    uint32_t	BlockSize;
-    uint32_t	LeaveBlocksAllocated:1;
-    uint32_t	HasParent:1;
-    uint32_t	Reserved:30;
+struct VHDX_FILE_PARAMETERS {                                                           //    8 octets
+    uint32_t    BlockSize { 0 };                                                        //    4 octets
+    uint32_t    LeaveBlocksAllocated:1;                                                 //    4 octets    1 bit
+    uint32_t    HasParent:1;                                                            //    0 octets    1 bit
+    uint32_t    Reserved:30;                                                            //    0 octet    30 bits
 };
 
 const size_t VHDX_FILE_PARAMETERS_SIZE { sizeof(struct VHDX_FILE_PARAMETERS) };
 
-struct VHDX_VIRTUAL_DISK_SIZE {
-    uint64_t	VirtualDiskSize;
+struct VHDX_VIRTUAL_DISK_SIZE {                                                         //    8 octets
+    uint64_t    VirtualDiskSize { 0 };                                                  //    8 octets
 };
 
 const size_t VHDX_VIRTUAL_DISK_SIZE_SIZE { sizeof(struct VHDX_VIRTUAL_DISK_SIZE) };
 
-struct VHDX_PAGE83_DATA {
-    VHDX_GUID	Page83Data;
+struct VHDX_PAGE83_DATA {                                                               //   16 octets
+    VHDX_GUID    Page83Data { 0 };                                                      //   16 octets
 };
 
 const size_t VHDX_PAGE83_DATA_SIZE { sizeof(struct VHDX_PAGE83_DATA) };
 
-struct VHDX_VIRTUAL_DISK_LOGICAL_SECTOR_SIZE {
-    uint32_t	LogicalSectorSize;
+struct VHDX_VIRTUAL_DISK_LOGICAL_SECTOR_SIZE {                                          //    4 octets
+    uint32_t    LogicalSectorSize { 0 };                                                //    4 octets
 };
 
 const size_t VHDX_VIRTUAL_DISK_LOGICAL_SECTOR_SIZE_SIZE { sizeof(struct VHDX_VIRTUAL_DISK_LOGICAL_SECTOR_SIZE) };
 
-struct VHDX_VIRTUAL_DISK_PHYSICAL_SECTOR_SIZE {
-    uint32_t	PhysicalSectorSize;
+struct VHDX_VIRTUAL_DISK_PHYSICAL_SECTOR_SIZE {                                         //    4 octets
+    uint32_t    PhysicalSectorSize { 0 };                                               //    4 octets
 };
 
 const size_t VHDX_VIRTUAL_DISK_PHYSICAL_SECTOR_SIZE_SIZE { sizeof(struct VHDX_VIRTUAL_DISK_PHYSICAL_SECTOR_SIZE) };
 
-struct VHDX_PARENT_LOCATOR_HEADER {
-    VHDX_GUID	LocatorType;
-    uint16_t	Reserved;
-    uint16_t	KeyValueCount;
+struct VHDX_PARENT_LOCATOR_HEADER {                                                     //   20 octets
+    VHDX_GUID   LocatorType;                                                            //   16 octets
+    uint16_t    Reserved { 0 };                                                         //    2 octets
+    uint16_t    KeyValueCount { 0 };                                                    //    2 octets
 };
 
 const size_t VHDX_PARENT_LOCATOR_HEADER_SIZE { sizeof(struct VHDX_PARENT_LOCATOR_HEADER) };
 
-struct VHDX_PARENT_LOCATOR_ENTRY {
-    uint32_t	KeyOffset;
-    uint32_t	ValueOffset;
-    uint16_t	KeyLength;
-    uint16_t	ValueLength;
+struct VHDX_PARENT_LOCATOR_ENTRY {                                                      //   12 octets
+    uint32_t    KeyOffset { 0 };                                                        //    4 octets
+    uint32_t    ValueOffset { 0 };                                                      //    4 octets
+    uint16_t    KeyLength { 0 };                                                        //    2 octets
+    uint16_t    ValueLength { 0 };                                                      //    2 octets
 };
 
 const size_t VHDX_PARENT_LOCATOR_ENTRY_SIZE { sizeof(struct VHDX_PARENT_LOCATOR_ENTRY) };
