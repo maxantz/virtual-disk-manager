@@ -10,7 +10,8 @@
  *     |Identifier|    1     |    2     |  Table   |  Table   |          |
  *     |          |          |          |    1     |    2     |          |
  *     |----------|----------|----------|----------|----------|----------|
- *    0kB       64kB       128kB      192kB      256kB      320kB       1MB
+ *     0B       64kB       128kB      192kB      256kB      320kB       1MB
+ *0x00000000 0x00010000 0x00020000 0x00030000 0x00040000 0x00050000 0x00100000
  */
 
 /**
@@ -18,6 +19,8 @@
  *     |  Header  |   Log    |   BAT    |  Sector  |   Data   |          | Metadata |          |   Data   |
  *     |          |          |          |  Bitmap  |          |          |  Region  |          |          |
  *     |----------|----------|----------|----------|----------|----------|----------|----------|----------|
+ *    0B         1MB
+ *0x00000000 0x00010000                       0x00011000            0x00020000
  */
 
 struct VHDX_GUID {                                                                      //   16 octets
@@ -171,7 +174,7 @@ struct VHDX_VIRTUAL_DISK_SIZE {                                                 
 const size_t VHDX_VIRTUAL_DISK_SIZE_SIZE { sizeof(struct VHDX_VIRTUAL_DISK_SIZE) };
 
 struct VHDX_PAGE83_DATA {                                                               //   16 octets
-    VHDX_GUID    Page83Data { 0 };                                                      //   16 octets
+    VHDX_GUID    Page83Data;                                                            //   16 octets
 };
 
 const size_t VHDX_PAGE83_DATA_SIZE { sizeof(struct VHDX_PAGE83_DATA) };
