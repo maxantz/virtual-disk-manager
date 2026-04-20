@@ -26,7 +26,7 @@ add_executable( vdm
 )
 
 target_link_libraries( vdm
-	Crc32c::crc32c
+    Crc32c::crc32c
 )
 
 add_subdirectory( tests )

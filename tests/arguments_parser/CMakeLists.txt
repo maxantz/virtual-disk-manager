@@ -8,15 +8,15 @@ enable_testing()
 include_directories("../../include")
 
 add_executable(
-  arguments_parser_test
-  ../../include/arguments_parser.h
-  ../../src/arguments_parser.cpp
-  main.cpp
+    arguments_parser_test
+    ../../include/arguments_parser.h
+    ../../src/arguments_parser.cpp
+    main.cpp
 )
 
 target_link_libraries(
-  arguments_parser_test
-  GTest::gtest_main
+    arguments_parser_test
+    GTest::gtest_main
 )
 
 gtest_discover_tests( arguments_parser_test )

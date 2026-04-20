@@ -41,15 +41,15 @@ const size_t VHDX_FILE_IDENTIFIER_SIZE { sizeof(struct VHDX_FILE_IDENTIFIER) };
 
 struct VHDX_HEADER {                                                                    // 4096 octets
     uint32_t  Signature { 0x64616568 }; // 0x64616568 -> "head"                         //    4 octets
-    uint32_t  Checksum { 0 };           // 0x40D8ECD8              0xFA7020C2           //    4 octets
-    uint64_t  SequenceNumber { 0 };     // 0x0600000000000000      0x07000000000000000  //    8 octets
-    VHDX_GUID FileWriteGuid { };        // 0x0EFF4560B389E545BCAC2ADD55ADC2B3           //   16 octets
-    VHDX_GUID DataWriteGuid { };        // 0xAD9F747ED5E3E34296C6B0FD494C3ED0           //   16 octets
-    VHDX_GUID LogGuid { };              // 0x6CCA86B605FF73469BAE8A29A82598DB           //   16 octets
-    uint16_t  LogVersion { 0 };         // 0x0000                                       //    2 octets
-    uint16_t  Version { 0 };            // 0x0100                                       //    2 octets
-    uint32_t  LogLength { 0 };          // 0x00001000                                   //    4 octets
-    uint64_t  LogOffset { 0 };          // 0x0000100000000000                           //    8 octets
+    uint32_t  Checksum { 0 };                                                           //    4 octets
+    uint64_t  SequenceNumber { 0 };                                                     //    8 octets
+    VHDX_GUID FileWriteGuid { };                                                        //   16 octets
+    VHDX_GUID DataWriteGuid { };                                                        //   16 octets
+    VHDX_GUID LogGuid { };                                                              //   16 octets
+    uint16_t  LogVersion { 0 };                                                         //    2 octets
+    uint16_t  Version { 1 };                                                            //    2 octets
+    uint32_t  LogLength { 0 };                                                          //    4 octets
+    uint64_t  LogOffset { 0 };                                                          //    8 octets
     uint8_t   Reserved[4016] { 0 };                                                     // 4016 octets
 };
 
@@ -219,7 +219,12 @@ static const VHDX_GUID LOGICAL_SECTOR_SIZE{ 0x8141BF1D, 0xA96F, 0x4709, { 0xBA, 
 static const VHDX_GUID PHYSICAL_SECTOR_SIZE{ 0xCDA348C7, 0x445D, 0x4471, { 0x9C, 0xC9, 0xE9, 0x88, 0x52, 0x51, 0xC5, 0x56 } };
 static const VHDX_GUID PARENTAL_LOCATOR{ 0xA8D35F2D, 0xB30B, 0x454D, { 0xAB, 0xF7, 0xD3, 0xD8, 0x48, 0x34, 0xAB, 0x0C } };
 
-bool createVHDX(const std::filesystem::path& fileName, const size_t& fileSize);
+struct VHDXOperationResult {
+    bool result { false };
+    std::string error;
+};
+
+VHDXOperationResult createVHDX(const std::filesystem::path& fileName, const size_t& fileSize);
 
 #endif
 

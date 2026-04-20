@@ -10,14 +10,14 @@ enable_testing()
 include_directories("../../include")
 
 add_executable(
-  vhdx_test
-  ../../include/vhdx.h
-  ../../src/vhdx.cpp
-  main.cpp
+    vhdx_test
+    ../../include/vhdx.h
+    ../../src/vhdx.cpp
+    main.cpp
 )
 
 target_link_libraries(
-  vhdx_test
-  GTest::gtest_main
-  Crc32c::crc32c
+    vhdx_test
+    GTest::gtest_main
+    Crc32c::crc32c
 )

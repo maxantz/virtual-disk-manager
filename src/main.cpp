@@ -36,9 +36,14 @@ int main(int argc, char** argv) {
         return -1;
     }
 
+    VHDXOperationResult result;
+
     switch(opts.op) {
     case Operation::Create:
-        createVHDX(opts.fileName, opts.fileSize);
+        result = createVHDX(opts.fileName, opts.fileSize);
+        if (!result.result) {
+            std::cerr<<result.error<<std::endl;
+        }
         break;
     case Operation::Bind:
         break;
@@ -54,4 +59,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
